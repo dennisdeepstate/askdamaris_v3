@@ -10,10 +10,13 @@ dependencies:
     version: 1.6.3
   drizzle-orm:
     specifier: ^0.30.7
-    version: 0.30.7(@types/pg@8.11.4)(pg@8.11.5)
+    version: 0.30.7(@types/pg@8.11.4)(pg@8.11.5)(postgres@3.4.4)
   pg:
     specifier: ^8.11.5
     version: 8.11.5
+  postgres:
+    specifier: ^3.4.4
+    version: 3.4.4
 
 devDependencies:
   '@skeletonlabs/skeleton':
@@ -1682,7 +1685,7 @@ packages:
       - supports-color
     dev: true
 
-  /drizzle-orm@0.30.7(@types/pg@8.11.4)(pg@8.11.5):
+  /drizzle-orm@0.30.7(@types/pg@8.11.4)(pg@8.11.5)(postgres@3.4.4):
     resolution: {integrity: sha512-9qefSZQlu2fO2qv24piHyWFWcxcOY15//0v4j8qomMqaxzipNoG+fUBrQ7Ftk7PY7APRbRdn/nkEXWxiI4a8mw==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
@@ -1764,6 +1767,7 @@ packages:
     dependencies:
       '@types/pg': 8.11.4
       pg: 8.11.5
+      postgres: 3.4.4
     dev: false
 
   /eastasianwidth@0.2.0:
@@ -3022,6 +3026,11 @@ packages:
 
   /postgres-range@1.1.4:
     resolution: {integrity: sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w==}
+
+  /postgres@3.4.4:
+    resolution: {integrity: sha512-IbyN+9KslkqcXa8AO9fxpk97PA4pzewvpi2B3Dwy9u4zpV32QicaEdgmF3eSQUzdRk7ttDHQejNgAEr4XoeH4A==}
+    engines: {node: '>=12'}
+    dev: false
 
   /prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
