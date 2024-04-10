@@ -30,17 +30,17 @@ export const sessions_table = pgTable('sessions', {
 })
 
 export const courses_table = pgTable('courses', {
-	id: serial('id').notNull().primaryKey(),
+	id: text('id').notNull().primaryKey(),
 	description: text('description').notNull(),
 	price: integer('price').notNull(),
-	thumb: text('thumb').notNull(),
+	thumb: text('thumb'),
 	title: text('title').notNull()
 })
 
 export const user_to_courses_table = pgTable(
 	'user_to_courses',
 	{
-		course_id: integer('course_id').references(() => courses_table.id),
+		course_id: text('course_id').references(() => courses_table.id),
 		mpesa_tx: integer('mpesa_tx').references(() => mpesa_stk_table.id),
 		user_id: text('user_id').references(() => users_table.id)
 	},
@@ -51,10 +51,10 @@ export const user_to_courses_table = pgTable(
 
 export const videos_table = pgTable('videos', {
 	id: serial('id').notNull().primaryKey(),
-	course_id: integer('video_id').references(() => courses_table.id),
+	course_id: text('course_id').references(() => courses_table.id),
 	bunny_id: text('bunny_id').notNull(),
 	description: text('description').notNull(),
-	premium: boolean('verified').notNull().default(true),
+	premium: boolean('premium').notNull().default(true),
 	title: text('title').notNull(),
 	thumb: text('thumb').notNull()
 })
@@ -102,7 +102,7 @@ export const blog_likes_table = pgTable(
 	'blog_likes',
 	{
 		user_id: text('user_id').references(() => users_table.id),
-		blog_id: integer('blog_id').references(() => blogs_table.id)
+		blog_id: text('blog_id').references(() => blogs_table.id)
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.user_id, table.blog_id] })
@@ -143,7 +143,7 @@ export const shop_items_tx_table = pgTable('shop_items_tx', {
 export const cart_table = pgTable('cart', {
 	id: serial('id').notNull().primaryKey(),
 	user_id: text('user_id').references(() => users_table.id),
-	course_id: integer('course_id').references(() => courses_table.id),
+	course_id: text('course_id').references(() => courses_table.id),
 	item_id: integer('item_id').references(() => shop_items_table.id),
 	qty: integer('qty')
 })

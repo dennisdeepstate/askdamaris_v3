@@ -1,4 +1,3 @@
-import db from '$lib/server/db'
 import { avg, eq, inArray, isNotNull, type ExtractTablesWithRelations } from 'drizzle-orm'
 import { courses_table, video_ratings_table, videos_table } from '$lib/server/schema'
 import type { PgTransaction } from 'drizzle-orm/pg-core'
@@ -8,7 +7,7 @@ async function get_course_videos({
 	course_ids,
 	tx
 }: {
-	course_ids?: number[]
+	course_ids?: string[]
 	tx: PgTransaction<
 		PostgresJsQueryResultHKT,
 		Record<string, never>,
