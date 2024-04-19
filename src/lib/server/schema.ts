@@ -51,7 +51,9 @@ export const user_to_courses_table = pgTable(
 
 export const videos_table = pgTable('videos', {
 	id: serial('id').notNull().primaryKey(),
-	course_id: text('course_id').references(() => courses_table.id),
+	course_id: text('course_id')
+		.notNull()
+		.references(() => courses_table.id),
 	bunny_id: text('bunny_id').notNull(),
 	description: text('description').notNull(),
 	premium: boolean('premium').notNull().default(true),
@@ -62,8 +64,12 @@ export const videos_table = pgTable('videos', {
 export const video_ratings_table = pgTable(
 	'video_ratings',
 	{
-		user_id: text('user_id').references(() => users_table.id),
-		video_id: integer('video_id').references(() => videos_table.id),
+		user_id: text('user_id')
+			.notNull()
+			.references(() => users_table.id),
+		video_id: integer('video_id')
+			.notNull()
+			.references(() => videos_table.id),
 		rating: smallint('rating').notNull()
 	},
 	(table) => ({

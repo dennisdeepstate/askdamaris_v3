@@ -7,7 +7,7 @@ export async function load({ params }) {
 	const course_videos = await db.transaction(
 		async (tx) => await get_course_videos({ course_ids: [course_id], tx })
 	)
-	if (course_videos.length < 1) {
+	if (course_videos.course_videos.length < 1) {
 		error(404)
 	}
 	return {
