@@ -24,8 +24,11 @@ export const users_table = pgTable('users', {
 
 export const sessions_table = pgTable('sessions', {
 	id: text('id').notNull().primaryKey(),
-	user_id: text('user_id').references(() => users_table.id),
+	user_id: text('user_id')
+		.notNull()
+		.references(() => users_table.id),
 	created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	ip: text('ip'),
 	user_agent: text('user_agent')
 })
 
