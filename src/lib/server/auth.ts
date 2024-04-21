@@ -34,14 +34,56 @@ async function create_session({
 			user_id
 		})
 		.returning({ id: sessions_table.id })
+		.onConflictDoNothing({ target: sessions_table.id })
 
 	if (new_session.length) {
 		cookies.set('ask_damaris', new_session[0].id, {
 			path: '/'
 		})
+	} else {
+		await create_session({
+			cookies,
+			ip,
+			tx,
+			user_agent,
+			user_id
+		})
 	}
 
 	return new_session
+}
+async function get_session({
+	cookies,
+	tx
+}: {
+	cookies: Cookies
+	tx: PgTransaction<
+		PostgresJsQueryResultHKT,
+		Record<string, never>,
+		ExtractTablesWithRelations<Record<string, never>>
+	>
+}) {
+	const session_id = cookies.get('ask_damaris')
+	if (!session_id) return
+	const session = await tx
+		.select({
+			id: sessions_table.id,
+			created_at: sessions_table.created_at,
+			user_id: users_table.id,
+			user_first_name: users_table.first_name,
+			user_last_name: users_table.last_name
+		})
+		.from(sessions_table)
+		.leftJoin(users_table, eq(users_table.id, sessions_table.user_id))
+		.where(eq(sessions_table.id, session_id))
+	if (!session.length) return
+	const time_passed = new Date().valueOf() - session[0].created_at.valueOf()
+	if (time_passed > 1000 * 60 * 60 * 24 * 3) {
+		await delete_session({ cookies, tx })
+		return
+	} else {
+		return session[0]
+	}
 }
 
 async function delete_session({
@@ -64,7 +106,7 @@ async function delete_session({
 	})
 }
 
-async function get_user({
+async function get_user_by_email_and_password({
 	email,
 	hashed_password,
 	tx
@@ -81,8 +123,44 @@ async function get_user({
 		.select({ user_id: users_table.id })
 		.from(users_table)
 		.where(and(eq(users_table.email, email), eq(users_table.password, hashed_password)))
-	if (user.length) {
-	}
+
+	return user
+}
+
+async function get_user_by_id({
+	id,
+	tx
+}: {
+	id: string
+	tx: PgTransaction<
+		PostgresJsQueryResultHKT,
+		Record<string, never>,
+		ExtractTablesWithRelations<Record<string, never>>
+	>
+}) {
+	const user = await tx
+		.select({ user_id: users_table.id })
+		.from(users_table)
+		.where(eq(users_table.id, id))
+
+	return user
+}
+
+async function get_user_by_email({
+	email,
+	tx
+}: {
+	email: string
+	tx: PgTransaction<
+		PostgresJsQueryResultHKT,
+		Record<string, never>,
+		ExtractTablesWithRelations<Record<string, never>>
+	>
+}) {
+	const user = await tx
+		.select({ user_id: users_table.id })
+		.from(users_table)
+		.where(eq(users_table.email, email))
 
 	return user
 }
@@ -109,6 +187,12 @@ async function create_user({
 		.insert(users_table)
 		.values({ id: user_id, email, first_name, password: hashed_password, last_name })
 		.returning({ id: users_table.id })
+		.onConflictDoNothing({ target: users_table.id })
+
+	if (new_user.length < 1) {
+		await create_user({ email, first_name, hashed_password, last_name, tx })
+	}
+
 	return new_user
 }
 
@@ -117,4 +201,13 @@ async function hash_password(password: string) {
 	return await bcrypt.hash(password)
 }
 
-export { create_session, create_user, delete_session, get_user, hash_password }
+export {
+	create_session,
+	create_user,
+	delete_session,
+	get_session,
+	get_user_by_id,
+	get_user_by_email,
+	get_user_by_email_and_password,
+	hash_password
+}
