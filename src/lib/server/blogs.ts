@@ -1,13 +1,17 @@
-import { eq, inArray, isNotNull, type ExtractTablesWithRelations, sum } from 'drizzle-orm'
+import { desc, eq, inArray, isNotNull, type ExtractTablesWithRelations, sum } from 'drizzle-orm'
 import { blog_likes_table, blogs_table, comments_table, users_table } from '$lib/server/schema'
 import { type PgTransaction } from 'drizzle-orm/pg-core'
 import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js'
 
 async function get_blogs({
 	blog_ids,
+	limit = 100,
+	offset = 0,
 	tx
 }: {
 	blog_ids?: string[]
+	limit?: number
+	offset?: number
 	tx: PgTransaction<
 		PostgresJsQueryResultHKT,
 		Record<string, never>,
@@ -21,6 +25,7 @@ async function get_blogs({
 			author_id: blogs_table.author_id,
 			author_first_name: users_table.first_name,
 			author_last_name: users_table.last_name,
+			blog: blogs_table.blog_markdown,
 			created_at: blogs_table.created_at,
 			tags: blogs_table.tags,
 			thumb: blogs_table.thumb,
@@ -29,6 +34,9 @@ async function get_blogs({
 		.from(blogs_table)
 		.leftJoin(users_table, eq(users_table.id, blogs_table.author_id))
 		.where(where_clause)
+		.orderBy(desc(blogs_table.created_at))
+		.limit(limit)
+		.offset(offset)
 
 	let blog_likes
 	let blog_comments

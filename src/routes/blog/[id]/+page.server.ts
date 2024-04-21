@@ -8,7 +8,5 @@ export async function load({ params }) {
 	if (blogs.blogs.length < 1) {
 		error(404)
 	}
-	return {
-		blogs
-	}
+	return blogs
 }

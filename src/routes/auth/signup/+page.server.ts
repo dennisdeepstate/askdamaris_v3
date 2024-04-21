@@ -3,7 +3,6 @@ import db from '$lib/server/db'
 import { validate_sign_up } from '$lib/shared/user_input_validation.js'
 import { fail, redirect } from '@sveltejs/kit'
 
-export async function load({ request }) {}
 export const actions = {
 	default: async ({ request }) => {
 		const form_data = await request.formData()

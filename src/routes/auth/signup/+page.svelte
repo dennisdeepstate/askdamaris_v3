@@ -1,0 +1,71 @@
+<script lang="ts">
+	import { enhance } from '$app/forms'
+	import Button from '$lib/components/button.svelte'
+	import InputText from '$lib/components/input_text.svelte'
+	import { validate_sign_up } from '$lib/shared/user_input_validation'
+	import type { SubmitFunction } from '@sveltejs/kit'
+	import type { SchemaIssues } from 'valibot'
+
+	export let email: string
+	export let first_name: string
+	export let last_name: string
+	export let password: string
+	export let issues: SchemaIssues | undefined
+	export let error_message: string | undefined
+
+	const submit_form: SubmitFunction = ({ cancel }) => {
+		const validated_input = validate_sign_up({
+			email,
+			first_name,
+			last_name,
+			password
+		})
+		if (!validated_input.success) {
+			issues = validated_input.issues
+			cancel()
+		}
+		return async ({ result }) => {
+			if (result.type === 'failure') {
+				error_message = result.data?.message
+				issues = result.data?.issues
+			}
+		}
+	}
+</script>
+
+<form action="/" method="post" use:enhance={submit_form}>
+	<InputText
+		autocomplete="email"
+		label="Email: "
+		name="email"
+		placeholder="john.doe@example.com"
+		bind:value={email}
+		title="Your email address"
+	/>
+	<InputText
+		autocomplete="given-name"
+		label="First name: "
+		name="first_name"
+		placeholder="John"
+		bind:value={first_name}
+		title="Your first name"
+	/>
+	<InputText
+		autocomplete="family-name"
+		label="Last name: "
+		name="last_name"
+		placeholder="Doe"
+		bind:value={last_name}
+		title="Your last name"
+	/>
+	<InputText
+		autocomplete="new-password"
+		label="Password: "
+		name="password"
+		placeholder="******"
+		bind:value={password}
+		title="Your password"
+		type="password"
+	/>
+	<Button title="Sign up" type="submit" />
+</form>

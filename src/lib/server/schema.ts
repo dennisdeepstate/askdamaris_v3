@@ -40,17 +40,19 @@ export const courses_table = pgTable('courses', {
 	title: text('title').notNull()
 })
 
-export const user_to_courses_table = pgTable(
-	'user_to_courses',
-	{
-		course_id: text('course_id').references(() => courses_table.id),
-		mpesa_tx: integer('mpesa_tx').references(() => mpesa_stk_table.id),
-		user_id: text('user_id').references(() => users_table.id)
-	},
-	(table) => ({
-		pk: primaryKey({ columns: [table.course_id, table.user_id] })
-	})
-)
+export const user_purchases_table = pgTable('user_to_courses', {
+	id: serial('id').notNull().primaryKey(),
+	course_id: text('course_id').references(() => courses_table.id),
+	mpesa_tx: integer('mpesa_tx')
+		.notNull()
+		.references(() => mpesa_stk_table.id),
+	shop_item_id: integer('shop_item_id').references(() => shop_items_table.id),
+	user_id: text('user_id')
+		.notNull()
+		.references(() => users_table.id),
+	rate: integer('rate').notNull(),
+	qty: integer('qty').notNull()
+})
 
 export const videos_table = pgTable('videos', {
 	id: serial('id').notNull().primaryKey(),
@@ -118,18 +120,12 @@ export const blog_likes_table = pgTable(
 	})
 )
 
-export const categories_table = pgTable('categories', {
-	name: text('name').notNull().primaryKey()
-})
-
 export const shop_items_table = pgTable('shop_items', {
 	id: serial('id').notNull().primaryKey(),
 	created_by: text('created_by')
 		.notNull()
 		.references(() => users_table.id),
-	category: text('category')
-		.notNull()
-		.references(() => categories_table.name),
+	category: text('category').notNull(),
 	description: text('description').notNull(),
 	max_order_qty: integer('max_order_qty').notNull().default(10),
 	min_order_qty: integer('min_order_qty').notNull().default(1),
