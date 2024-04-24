@@ -1,15 +1,20 @@
 import * as v from 'valibot'
 
-const email_schema = v.nonOptional(v.string([v.toTrimmed(), v.email('Please enter a valid email')]))
+const email_schema = v.nonOptional(
+	v.string([v.toTrimmed(), v.email('Please enter a valid email')]),
+	'Please provide a value'
+)
 const password_schema = v.nonOptional(
-	v.string([v.minLength(8, 'Please enter a password that is atleast 8 characters long')])
+	v.string([v.minLength(8, 'Please enter a password that is atleast 8 characters long')]),
+	'Please provide a value'
 )
 const name_schema = v.nonOptional(
 	v.string([
 		v.toTrimmed(),
 		v.minLength(3, 'Please enter a name that is atleast 3 characters long'),
 		v.maxLength(32, 'Please enter a name that does not exceed 32 characters in length')
-	])
+	]),
+	'Please provide a value'
 )
 
 const sign_up_schema = v.object({

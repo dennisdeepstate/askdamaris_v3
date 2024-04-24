@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms'
 	import Button from '$lib/components/button.svelte'
+	import InputError from '$lib/components/input_error.svelte'
 	import InputText from '$lib/components/input_text.svelte'
 	import { validate_sign_up } from '$lib/shared/user_input_validation'
 	import type { SubmitFunction } from '@sveltejs/kit'
@@ -24,18 +25,25 @@
 			issues = validated_input.issues
 			cancel()
 		}
-		return async ({ result }) => {
+		return async ({ update, result }) => {
 			if (result.type === 'failure') {
 				error_message = result.data?.message
 				issues = result.data?.issues
 			}
+			update()
 		}
 	}
 </script>
 
-<form action="/" method="post" use:enhance={submit_form}>
+<form action="/auth/signup" method="post" use:enhance={submit_form}>
+	{#if error_message}
+		<InputError errors={[error_message]} />
+	{/if}
 	<InputText
 		autocomplete="email"
+		errors={issues
+			?.filter((issue) => issue.path && issue.path[0].key === 'email')
+			.map((issue) => issue.message)}
 		label="Email: "
 		name="email"
 		placeholder="john.doe@example.com"
@@ -44,6 +52,9 @@
 	/>
 	<InputText
 		autocomplete="given-name"
+		errors={issues
+			?.filter((issue) => issue.path && issue.path[0].key === 'first_name')
+			.map((issue) => issue.message)}
 		label="First name: "
 		name="first_name"
 		placeholder="John"
@@ -52,6 +63,9 @@
 	/>
 	<InputText
 		autocomplete="family-name"
+		errors={issues
+			?.filter((issue) => issue.path && issue.path[0].key === 'last_name')
+			.map((issue) => issue.message)}
 		label="Last name: "
 		name="last_name"
 		placeholder="Doe"
@@ -60,6 +74,9 @@
 	/>
 	<InputText
 		autocomplete="new-password"
+		errors={issues
+			?.filter((issue) => issue.path && issue.path[0].key === 'password')
+			.map((issue) => issue.message)}
 		label="Password: "
 		name="password"
 		placeholder="******"

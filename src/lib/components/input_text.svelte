@@ -13,9 +13,9 @@
 
 <InputWrapper {errors} {label}>
 	{#if type === 'text'}
-		<input {autocomplete} {name} {placeholder} type="text" bind:value {title} />
+		<input {autocomplete} class="input" {name} {placeholder} type="text" bind:value {title} />
 	{/if}
 	{#if type === 'password'}
-		<input {autocomplete} {name} {placeholder} type="text" bind:value {title} />
+		<input {autocomplete} class="input" {name} {placeholder} type="password" bind:value {title} />
 	{/if}
 </InputWrapper>

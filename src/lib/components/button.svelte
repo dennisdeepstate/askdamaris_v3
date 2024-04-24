@@ -3,4 +3,4 @@
 	export let type: 'submit' | 'button' = 'button'
 </script>
 
-<button class="btn" {type}>{title}</button>
+<button class="btn variant-filled-primary" {type}>{title}</button>

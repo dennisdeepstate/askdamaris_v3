@@ -2,6 +2,7 @@ import { create_user, get_user_by_email, hash_password } from '$lib/server/auth'
 import db from '$lib/server/db'
 import { validate_sign_up } from '$lib/shared/user_input_validation.js'
 import { fail, redirect } from '@sveltejs/kit'
+import { DrizzleError } from 'drizzle-orm'
 
 export const actions = {
 	default: async ({ request }) => {
@@ -20,11 +21,18 @@ export const actions = {
 		}
 
 		let new_user: { id: string }[] = []
+		let error: { message: string | undefined; status: number } = {
+			message: 'An error occured on the server',
+			status: 500
+		}
 		const hashed_password = await hash_password(validated_input.output.password)
 		await db.transaction(async (tx) => {
 			try {
 				if ((await get_user_by_email({ email: validated_input.output.email, tx })).length) {
-					throw new Error('The provided email is already registered')
+					throw new DrizzleError({
+						message: 'Rollback',
+						cause: 'The email provided is already registered'
+					})
 				}
 				new_user = await create_user({
 					email: validated_input.output.email,
@@ -34,19 +42,19 @@ export const actions = {
 					tx
 				})
 			} catch (e) {
-				tx.rollback()
-				if (e instanceof Error) {
-					return fail(400, { message: e.message })
-				} else {
-					return fail(400, { message: 'An error occured on the server' })
+				if (e instanceof DrizzleError) {
+					error = {
+						message: String(e.cause),
+						status: 400
+					}
 				}
 			}
 		})
 
 		if (new_user?.length) {
-			return fail(400)
-		} else {
 			redirect(307, '/')
+		} else {
+			return fail(error.status, { message: error.message })
 		}
 	}
 }

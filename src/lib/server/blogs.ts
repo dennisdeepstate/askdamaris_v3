@@ -46,9 +46,11 @@ async function get_blogs({
 				blog_id: comments_table.blog_id,
 				comment: comments_table.comment,
 				comment_author_id: comments_table.user_id,
-				comment_author_first_name: users_table.first_name
+				comment_author_first_name: users_table.first_name,
+				comment_author_last_name: users_table.last_name
 			})
 			.from(blogs_table)
+			.leftJoin(comments_table, eq(comments_table.blog_id, blogs_table.id))
 			.leftJoin(users_table, eq(users_table.id, comments_table.user_id))
 			.where(
 				inArray(

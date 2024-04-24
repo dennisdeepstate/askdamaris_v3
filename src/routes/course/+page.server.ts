@@ -4,7 +4,5 @@ import db from '$lib/server/db'
 const course_videos = await db.transaction(async (tx) => await get_course_videos({ tx }))
 
 export function load() {
-	return {
-		course_videos
-	}
+	return course_videos
 }
