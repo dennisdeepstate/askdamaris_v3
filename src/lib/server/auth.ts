@@ -106,13 +106,13 @@ async function delete_session({
 	})
 }
 
-async function get_user_by_email_and_password({
+async function verify_email_and_password_combination({
 	email,
-	hashed_password,
+	password,
 	tx
 }: {
 	email: string
-	hashed_password: string
+	password: string
 	tx: PgTransaction<
 		PostgresJsQueryResultHKT,
 		Record<string, never>,
@@ -120,11 +120,15 @@ async function get_user_by_email_and_password({
 	>
 }) {
 	const user = await tx
-		.select({ user_id: users_table.id })
+		.select({ user_id: users_table.id, hashed_password: users_table.password })
 		.from(users_table)
-		.where(and(eq(users_table.email, email), eq(users_table.password, hashed_password)))
+		.where(eq(users_table.email, email))
 
-	return user
+	if (user.length && (await valid_password(user[0].hashed_password, password))) {
+		return user
+	} else {
+		return []
+	}
 }
 
 async function get_user_by_id({
@@ -201,6 +205,11 @@ async function hash_password(password: string) {
 	return await bcrypt.hash(password)
 }
 
+async function valid_password(hashed_password: string, password: string) {
+	const bcrypt = new Bcrypt()
+	return await bcrypt.verify(hashed_password, password)
+}
+
 export {
 	create_session,
 	create_user,
@@ -208,6 +217,6 @@ export {
 	get_session,
 	get_user_by_id,
 	get_user_by_email,
-	get_user_by_email_and_password,
+	verify_email_and_password_combination,
 	hash_password
 }

@@ -1,7 +1,8 @@
-import { create_session, get_user_by_email_and_password, hash_password } from '$lib/server/auth'
+import { create_session, verify_email_and_password_combination } from '$lib/server/auth'
 import db from '$lib/server/db'
 import { validate_sign_in } from '$lib/shared/user_input_validation.js'
 import { fail, redirect } from '@sveltejs/kit'
+import { DrizzleError } from 'drizzle-orm/errors'
 
 export const actions = {
 	default: async ({ cookies, request }) => {
@@ -16,14 +17,16 @@ export const actions = {
 		if (!validated_input.success) {
 			return fail(400, { message: 'Please provide valid inputs', issues: validated_input.issues })
 		}
-		const hashed_password = await hash_password(validated_input.output.password)
 		let session: { id: string }[] = []
-
+		let error: { message: string | undefined; status: number } = {
+			message: 'An error occured on the server',
+			status: 500
+		}
 		await db.transaction(async (tx) => {
 			try {
-				const user = await get_user_by_email_and_password({
+				const user = await verify_email_and_password_combination({
 					email: validated_input.output.email,
-					hashed_password,
+					password: validated_input.output.password,
 					tx
 				})
 				if (user.length) {
@@ -35,21 +38,24 @@ export const actions = {
 						user_id: user[0].user_id
 					})
 				} else {
-					throw new Error('the email and password combination does not exist')
+					throw new DrizzleError({
+						message: 'Rollback',
+						cause: 'The email and password combination provided does not exist'
+					})
 				}
 			} catch (e) {
-				tx.rollback()
-				if (e instanceof Error) {
-					return fail(400, { message: e })
-				} else {
-					return fail(400, { message: 'An Error occured on the server' })
+				if (e instanceof DrizzleError) {
+					error = {
+						message: String(e.cause),
+						status: 400
+					}
 				}
 			}
 		})
 		if (session.length) {
 			redirect(307, '/')
 		} else {
-			return fail(400)
+			return fail(error.status, { message: error.message })
 		}
 	}
 }

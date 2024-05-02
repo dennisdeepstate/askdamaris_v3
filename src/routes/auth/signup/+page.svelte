@@ -29,8 +29,9 @@
 			if (result.type === 'failure') {
 				error_message = result.data?.message
 				issues = result.data?.issues
+			} else {
+				update()
 			}
-			update()
 		}
 	}
 </script>

@@ -112,8 +112,12 @@ export const comment_replies_table = pgTable('comment_replies', {
 export const blog_likes_table = pgTable(
 	'blog_likes',
 	{
-		user_id: text('user_id').references(() => users_table.id),
-		blog_id: text('blog_id').references(() => blogs_table.id)
+		user_id: text('user_id')
+			.notNull()
+			.references(() => users_table.id),
+		blog_id: text('blog_id')
+			.notNull()
+			.references(() => blogs_table.id)
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.user_id, table.blog_id] })
