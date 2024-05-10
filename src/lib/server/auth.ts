@@ -69,6 +69,7 @@ async function get_session({
 		.select({
 			id: sessions_table.id,
 			created_at: sessions_table.created_at,
+			admin: users_table.admin,
 			user_id: users_table.id,
 			user_first_name: users_table.first_name,
 			user_last_name: users_table.last_name

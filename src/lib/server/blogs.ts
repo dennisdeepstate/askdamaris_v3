@@ -2,6 +2,7 @@ import { desc, eq, inArray, isNotNull, type ExtractTablesWithRelations, sum } fr
 import { blog_likes_table, blogs_table, comments_table, users_table } from '$lib/server/schema'
 import { type PgTransaction } from 'drizzle-orm/pg-core'
 import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js'
+import { alphabet, generateRandomString } from 'oslo/crypto'
 
 async function get_blogs({
 	blog_ids,
@@ -75,4 +76,48 @@ async function get_blogs({
 	}
 }
 
-export { get_blogs }
+async function get_blog_by_title({
+	title,
+	tx
+}: {
+	title: string
+	tx: PgTransaction<
+		PostgresJsQueryResultHKT,
+		Record<string, never>,
+		ExtractTablesWithRelations<Record<string, never>>
+	>
+}) {
+	return await tx
+		.select({ id: blogs_table.id })
+		.from(blogs_table)
+		.where(eq(blogs_table.title, title))
+}
+
+async function create_blog({
+	admin,
+	blog,
+	title,
+	tx
+}: {
+	admin: string
+	blog: string
+	title: string
+	tx: PgTransaction<
+		PostgresJsQueryResultHKT,
+		Record<string, never>,
+		ExtractTablesWithRelations<Record<string, never>>
+	>
+}) {
+	const blog_id = generateRandomString(12, alphabet('a-z', '0-9')).concat(title)
+	await tx.insert(blogs_table).values({
+		id: blog_id,
+		author_id: admin,
+		created_at: new Date(),
+		blog_markdown: blog,
+		title: title,
+		thumb: ''
+	})
+	return blog_id
+}
+
+export { create_blog, get_blogs, get_blog_by_title }

@@ -42,4 +42,16 @@ function validate_sign_in(sign_in: { email: string; password: string }) {
 	return v.safeParse(sign_in_schema, sign_in)
 }
 
-export { validate_sign_in, validate_sign_up }
+const blog_schema = v.object({
+	title: name_schema,
+	blog: v.nonOptional(
+		v.string([v.minLength(120, 'Please enter a blog entry atleast 120 characters in length')]),
+		'Please provide a value'
+	)
+})
+
+function validate_blog_entry(blog: { title: string | undefined; blog: string | undefined }) {
+	return v.safeParse(blog_schema, blog)
+}
+
+export { validate_blog_entry, validate_sign_in, validate_sign_up }
