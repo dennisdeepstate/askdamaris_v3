@@ -1,4 +1,12 @@
-import { desc, eq, inArray, isNotNull, type ExtractTablesWithRelations, sum } from 'drizzle-orm'
+import {
+	desc,
+	eq,
+	inArray,
+	isNotNull,
+	type ExtractTablesWithRelations,
+	sql,
+	count
+} from 'drizzle-orm'
 import { blog_likes_table, blogs_table, comments_table, users_table } from '$lib/server/schema'
 import { type PgTransaction } from 'drizzle-orm/pg-core'
 import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js'
@@ -19,7 +27,12 @@ async function get_blogs({
 		ExtractTablesWithRelations<Record<string, never>>
 	>
 }) {
-	const where_clause = blog_ids ? inArray(blogs_table.id, blog_ids) : isNotNull(blogs_table.id)
+	const where_clause = blog_ids?.length
+		? inArray(
+				blogs_table.id,
+				blog_ids.map((id) => id.slice(0, 12))
+			)
+		: isNotNull(blogs_table.id)
 	const blogs = await tx
 		.select({
 			blog_id: blogs_table.id,
@@ -60,7 +73,7 @@ async function get_blogs({
 				)
 			)
 		blog_likes = await tx
-			.select({ blog_id: blog_likes_table.blog_id, likes: sum(blog_likes_table.blog_id) })
+			.select({ blog_id: blog_likes_table.blog_id, likes: count(blog_likes_table.blog_id) })
 			.from(blog_likes_table)
 			.where(
 				inArray(
@@ -68,6 +81,7 @@ async function get_blogs({
 					blogs.map((blog) => blog.blog_id)
 				)
 			)
+			.groupBy(blog_likes_table.blog_id)
 	}
 	return {
 		blogs,
@@ -90,7 +104,7 @@ async function get_blog_by_title({
 	return await tx
 		.select({ id: blogs_table.id })
 		.from(blogs_table)
-		.where(eq(blogs_table.title, title))
+		.where(eq(sql`LOWER(${blogs_table.title})`, title.toLowerCase()))
 }
 
 async function create_blog({
@@ -108,16 +122,19 @@ async function create_blog({
 		ExtractTablesWithRelations<Record<string, never>>
 	>
 }) {
-	const blog_id = generateRandomString(12, alphabet('a-z', '0-9')).concat(title)
-	await tx.insert(blogs_table).values({
-		id: blog_id,
-		author_id: admin,
-		created_at: new Date(),
-		blog_markdown: blog,
-		title: title,
-		thumb: ''
-	})
-	return blog_id
+	const blog_id = generateRandomString(12, alphabet('a-z', '0-9'))
+	const inserted = await tx
+		.insert(blogs_table)
+		.values({
+			id: blog_id,
+			author_id: admin,
+			created_at: new Date(),
+			blog_markdown: blog,
+			title: title,
+			thumb: ''
+		})
+		.returning({ id: blogs_table.id })
+	return inserted[0]?.id
 }
 
 export { create_blog, get_blogs, get_blog_by_title }

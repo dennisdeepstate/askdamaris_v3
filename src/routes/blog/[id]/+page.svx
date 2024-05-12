@@ -8,5 +8,7 @@
 	<Blog
 		{blog}
 		blog_comments={data.blog_comments?.filter((comment) => comment.blog_id === blog.blog_id)}
-	/>
+	>
+	{blog.blog}
+	</Blog>
 {/each}

@@ -2,7 +2,6 @@
 	export let blog: {
 		author_first_name: string | null
 		author_last_name: string | null
-		blog: string
 		created_at: Date
 		tags: string | null
 		thumb: string
@@ -24,7 +23,9 @@
 <span>{blog.created_at}</span>
 <span>{blog.author_first_name} {blog.author_last_name}</span>
 <span> {blog.tags} </span>
-<p>{blog.blog}</p>
+<p>
+	<slot />
+</p>
 
 {#if blog_comments && blog_comments.length}
 	{#each blog_comments as blog_comment}

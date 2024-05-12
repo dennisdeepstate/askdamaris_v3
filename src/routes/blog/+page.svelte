@@ -5,5 +5,5 @@
 </script>
 
 {#each data.blogs as blog}
-	<Blog {blog} />
+	<Blog {blog}>{blog.blog}</Blog>
 {/each}

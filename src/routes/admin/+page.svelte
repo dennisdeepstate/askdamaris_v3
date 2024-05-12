@@ -3,6 +3,7 @@
 	import Button from '$lib/components/button.svelte'
 	import InputError from '$lib/components/input_error.svelte'
 	import InputText from '$lib/components/input_text.svelte'
+	import Textarea from '$lib/components/textarea.svelte'
 	import { validate_blog_entry } from '$lib/shared/user_input_validation'
 	import type { SubmitFunction } from '@sveltejs/kit'
 	import type { SchemaIssues } from 'valibot'
@@ -48,6 +49,14 @@
 		title="title"
 		bind:value={title}
 	/>
-	<textarea name="blog" bind:value={blog}></textarea>
+	<Textarea
+		errors={issues
+			?.filter((issue) => issue.path && issue.path[0].key === 'blog')
+			.map((issue) => issue.message)}
+		label="Blog entry"
+		name="blog"
+		title="blog"
+		bind:value={blog}
+	/>
 	<Button title="submit" type="submit" />
 </form>

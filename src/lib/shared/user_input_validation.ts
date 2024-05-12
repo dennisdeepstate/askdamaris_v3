@@ -17,6 +17,15 @@ const name_schema = v.nonOptional(
 	'Please provide a value'
 )
 
+const title_schema = v.nonOptional(
+	v.string([
+		v.toTrimmed(),
+		v.minLength(3, 'Please enter a title that is atleast 3 characters long'),
+		v.maxLength(128, 'Please enter a title that does not exceed 128 characters in length')
+	]),
+	'Please provide a value'
+)
+
 const sign_up_schema = v.object({
 	email: email_schema,
 	first_name: name_schema,
@@ -43,7 +52,7 @@ function validate_sign_in(sign_in: { email: string; password: string }) {
 }
 
 const blog_schema = v.object({
-	title: name_schema,
+	title: title_schema,
 	blog: v.nonOptional(
 		v.string([v.minLength(120, 'Please enter a blog entry atleast 120 characters in length')]),
 		'Please provide a value'

@@ -48,6 +48,7 @@ export const actions = {
 					})
 				}
 			} catch (e) {
+				console.log(e)
 				if (e instanceof DrizzleError) {
 					error = {
 						message: String(e.cause),
