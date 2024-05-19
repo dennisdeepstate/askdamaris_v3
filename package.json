@@ -45,6 +45,7 @@
 	"dependencies": {
 		"@floating-ui/dom": "1.6.3",
 		"drizzle-orm": "^0.30.7",
+		"openai": "^4.47.1",
 		"oslo": "^1.2.0",
 		"pg": "^8.11.5",
 		"postgres": "^3.4.4",

@@ -7,10 +7,17 @@ import {
 	sql,
 	count
 } from 'drizzle-orm'
-import { blog_likes_table, blogs_table, comments_table, users_table } from '$lib/server/schema'
+import {
+	blog_likes_table,
+	blogs_table,
+	comments_table,
+	embeddings_table,
+	users_table
+} from '$lib/server/schema'
 import { type PgTransaction } from 'drizzle-orm/pg-core'
 import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js'
 import { alphabet, generateRandomString } from 'oslo/crypto'
+import { create_embedding } from './ask'
 
 async function get_blogs({
 	blog_ids,
@@ -123,6 +130,7 @@ async function create_blog({
 	>
 }) {
 	const blog_id = generateRandomString(12, alphabet('a-z', '0-9'))
+	const embedding = await create_embedding(blog)
 	const inserted = await tx
 		.insert(blogs_table)
 		.values({
@@ -134,6 +142,11 @@ async function create_blog({
 			thumb: ''
 		})
 		.returning({ id: blogs_table.id })
+	await tx.insert(embeddings_table).values({
+		blog_id: inserted[0]?.id,
+		embedding,
+		type: 'blog'
+	})
 	return inserted[0]?.id
 }
 

@@ -4,6 +4,7 @@ import {
 	pgEnum,
 	pgTable,
 	primaryKey,
+	real,
 	serial,
 	smallint,
 	text,
@@ -81,6 +82,13 @@ export const video_ratings_table = pgTable(
 		pk: primaryKey({ columns: [table.user_id, table.video_id] })
 	})
 )
+
+export const embeddings_table = pgTable('embeddings', {
+	id: serial('id').notNull().primaryKey(),
+	embedding: real('embedding').array().notNull(),
+	blog_id: text('blog_id').references(() => blogs_table.id),
+	type: text('type')
+})
 
 export const blogs_table = pgTable('blogs', {
 	id: text('id').notNull().primaryKey(),
