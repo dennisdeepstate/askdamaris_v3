@@ -4,13 +4,18 @@
 	import type { SubmitFunction } from '@sveltejs/kit'
 	import { enhance } from '$app/forms'
 
-	let conversations: { role: 'assistant' | 'user'; message: string }[] = [
+	let conversations: {
+		role: 'assistant' | 'user'
+		message: string
+		message_with_context: string
+	}[] = [
 		{
 			role: 'assistant',
-			message: 'ask damaris...'
+			message: 'ask damaris...',
+			message_with_context: 'ask damaris...'
 		}
 	]
-	let conversations_with_context = [...conversations]
+
 	let error_message: string | undefined
 	let loading = false
 
@@ -18,18 +23,23 @@
 		if (loading) cancel()
 		error_message = undefined
 		loading = true
-		conversations.push({
-			role: 'user',
-			message: formData.getAll('message[]').pop()?.toString() ?? ''
-		})
+		let message = String(Array.from(formData.getAll('message[]')).pop()) ?? ''
+
 		return async ({ result }) => {
-			if (result.type === 'success' && result.data?.answer && result.data?.message_with_context) {
-				conversations_with_context.push({ role: 'user', message: result.data.message_with_context })
-				conversations = [...conversations, { role: 'assistant', message: result.data.answer }]
-				conversations_with_context = [
-					...conversations_with_context,
-					{ role: 'assistant', message: result.data.answer }
-				]
+			if (result.type === 'success' && result.data?.answer) {
+				let message_with_context = message
+				if (result.data?.message_with_context) {
+					message_with_context = result.data.message_with_context
+						.toString()
+						.concat(`\n Question: ${message}`)
+				}
+				conversations.push({ role: 'user', message, message_with_context })
+				conversations.push({
+					role: 'assistant',
+					message: result.data.answer,
+					message_with_context: result.data.answer
+				})
+				conversations = conversations
 			}
 			if (result.type === 'failure') {
 				error_message = result.data?.error_message
@@ -48,9 +58,9 @@
 	{#each conversations as convo, i}
 		<div class="p-2">
 			<h3 class="h3">{convo.role}</h3>
-			<input name="role[]" type="hidden" value={conversations_with_context[i].role} />
+			<input name="role[]" type="hidden" value={convo.role} />
 			<p>{convo.message}</p>
-			<input name="message[]" type="hidden" value={conversations_with_context[i].message} />
+			<input name="message[]" type="hidden" value={convo.message_with_context} />
 		</div>
 	{/each}
 

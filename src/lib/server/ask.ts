@@ -10,20 +10,10 @@ const openai = new OpenAI({
 	apiKey: OPEN_AI_KEY
 })
 
-async function create_embedding(input: string) {
-	const embeddings = await openai.embeddings.create({
-		model: 'text-embedding-ada-002',
-		input,
-		encoding_format: 'float'
-	})
-
-	return embeddings.data.flatMap((emb) => emb.embedding)
-}
-
 const system_message = {
 	role: 'system',
 	content:
-		'You are a Q&A assistant for a real website, askdamaris.com which is a career website that contains blogs, ebooks and videos by Damaris Kakundi where she provides valuable information about how to achieve career and personal growth'
+		'You are a Q&A assistant for a real non-fictional website, askdamaris.com which is a career website that contains blogs, ebooks and videos by Damaris Kakundi where she provides valuable information about how to achieve career and personal growth. You will answer all questions in a hundred words or less. If a user asks an irrelevant question, remind the user that this website is focused on career and personal growth'
 }
 
 async function add_context(
@@ -34,23 +24,28 @@ async function add_context(
 		ExtractTablesWithRelations<Record<string, never>>
 	>
 ) {
-	const message_embeddings = `${embeddings_table.embedding} <-> ARRAY[${(await create_embedding(message)).join(',')}]::real[]`
 	const matching_content = await tx
 		.select({
-			id: embeddings_table.id,
-			blog_id: embeddings_table.blog_id,
+			rank: sql`ts_rank(to_tsvector(${blogs_table.blog_markdown}), plainto_tsquery(${message}))`.as(
+				'rank'
+			),
 			blog_content: blogs_table.blog_markdown
 		})
-		.from(embeddings_table)
-		.leftJoin(blogs_table, eq(blogs_table.id, embeddings_table.blog_id))
-		.orderBy(sql`${message_embeddings}`)
-		.limit(1)
+		.from(blogs_table)
+		.where(sql`to_tsvector(${blogs_table.blog_markdown}) @@ plainto_tsquery(${message})`)
+		.orderBy(sql`rank DESC`)
 
-	let message_with_context = message
-	console.log(matching_content)
-	if (matching_content[0].blog_content) {
-		message_with_context = `Use the blog provided below to get context on the question\n blog:${matching_content[0].blog_content}\n`
-	}
+	let message_with_context = undefined
+
+	matching_content.map((content, i) => {
+		if (content.blog_content) {
+			message_with_context = `${i === 0 ? 'Use the blog(s) provided below to get context on the question and direct the user to check out the blog' : ''}\n blog:${content.blog_content}\n`
+		}
+	})
+
+	console.log(message_with_context)
+
+	if (!message_with_context) return
 
 	return {
 		role: 'system',
@@ -59,15 +54,16 @@ async function add_context(
 }
 
 async function ask_open_ai(conversation: { role: string; content: string }[]) {
+	//return 'hi there'
 	const response = await openai.chat.completions.create({
 		model: 'gpt-3.5-turbo',
 		messages: conversation as ChatCompletionMessageParam[],
 		temperature: 0.4,
-		max_tokens: 64,
+		max_tokens: 128,
 		top_p: 1
 	})
 
 	return response.choices[0].message.content
 }
 
-export { add_context, ask_open_ai, create_embedding, system_message }
+export { add_context, ask_open_ai, system_message }

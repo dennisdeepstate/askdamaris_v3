@@ -13,6 +13,8 @@ export const actions = {
 			roles.length !== content.length ||
 			roles.some((role) => role !== 'user' && role !== 'assistant')
 		) {
+			console.log(roles)
+			console.log(content)
 			return fail(400, { message: 'wrong format' })
 		}
 
@@ -27,15 +29,15 @@ export const actions = {
 			return fail(400, { message: 'wrong format' })
 		}
 
-		const message_with_context = await db.transaction(async (tx) => await add_context(message, tx))
-		conversations.push(message_with_context)
+		const context = await db.transaction(async (tx) => await add_context(message, tx))
+		if (context) conversations.push(context)
 		conversations.push({ role: 'user', content: message })
 
 		const answer = await ask_open_ai(conversations)
 
 		return {
 			answer,
-			message_with_context: message_with_context.content
+			message_with_context: context?.content
 		}
 	}
 }
