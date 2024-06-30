@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Ask from '$lib/components/ask.svelte'
+	import Nav from '$lib/components/nav.svelte'
 	import '../app.postcss'
 
 	// Floating UI for Popups
@@ -14,4 +15,5 @@
 <Modal>
 	<Ask />
 </Modal>
+<Nav />
 <slot />
